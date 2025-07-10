@@ -107,7 +107,7 @@ struct ProfileFeature {
                     state.editingDailyGoal = String(prefs.dailyGoal)
                     state.editingUnitType = prefs.unitType
                     state.editingCostPerUnit = String(prefs.costPerUnit)
-                    state.editingQuitDate = prefs.quitDate
+                    state.editingQuitDate = prefs.quitDate ?? Date()
                 }
                 
                 return .none
@@ -130,7 +130,7 @@ struct ProfileFeature {
                     state.editingDailyGoal = String(prefs.dailyGoal)
                     state.editingUnitType = prefs.unitType
                     state.editingCostPerUnit = String(prefs.costPerUnit)
-                    state.editingQuitDate = prefs.quitDate
+                    state.editingQuitDate = prefs.quitDate ?? Date()
                 }
                 return .none
                 

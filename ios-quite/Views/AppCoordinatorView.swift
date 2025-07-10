@@ -13,24 +13,22 @@ struct AppCoordinatorView: View {
     let store: StoreOf<AppFeature>
     
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            Group {
-                if viewStore.isLoading {
-                    LoadingView()
-                } else {
-                    switch viewStore.currentRoute {
-                    case .login:
-                        LoginView(store: store.scope(state: \.login, action: \.login))
-                    case .onboarding:
-                        OnboardingView(store: store.scope(state: \.onboarding, action: \.onboarding))
-                    case .main:
-                        MainTabView(store: store.scope(state: \.main, action: \.main))
-                    }
+        Group {
+            if store.isLoading {
+                LoadingView()
+            } else {
+                switch store.currentRoute {
+                case .login:
+                    LoginView(store: store.scope(state: \.login, action: \.login))
+                case .onboarding:
+                    OnboardingView(store: store.scope(state: \.onboarding, action: \.onboarding))
+                case .main:
+                    MainTabView(store: store.scope(state: \.main, action: \.main))
                 }
             }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }

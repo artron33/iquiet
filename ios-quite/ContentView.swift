@@ -6,10 +6,15 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 struct ContentView: View {
     var body: some View {
-        AppCoordinatorView()
+        AppCoordinatorView(
+            store: Store(initialState: AppFeature.State()) {
+                AppFeature()
+            }
+        )
     }
 }
 

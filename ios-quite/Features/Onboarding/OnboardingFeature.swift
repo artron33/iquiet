@@ -145,9 +145,12 @@ struct OnboardingFeature {
                             onboardingCompleted: true
                         )
                         
-                        // In debug mode, just save to UserDefaults
-                        // In production mode, save to SwiftData
+                        // TODO: Save preferences to SwiftData
+                        // For now, just save onboarding completion status
                         UserDefaults.standard.set(true, forKey: "onboardingCompleted")
+                        
+                        // Log preferences for debugging
+                        print("Onboarding completed with preferences: \(preferences.targetSubstance), \(preferences.dailyGoal) \(preferences.unitType)")
                         
                         await send(.onboardingCompleted)
                     } catch {

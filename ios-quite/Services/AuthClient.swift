@@ -11,65 +11,72 @@ import ComposableArchitecture
 // MARK: - AuthClient (TCA Dependency)
 @DependencyClient
 struct AuthClient {
-    var login: (_ email: String, _ password: String) async -> Result<Bool, LoginError>
-    var signup: (_ email: String, _ password: String) async -> Result<Bool, LoginError>
-    var logout: () async -> Void
-    var isLoggedIn: () -> Bool
-    var isDebugMode: () -> Bool
-    var currentUserEmail: () -> String?
+    var login: (_ email: String, _ password: String) async -> Result<Bool, LoginError> = { _, _ in .failure(.networkError) }
+    var signup: (_ email: String, _ password: String) async -> Result<Bool, LoginError> = { _, _ in .failure(.networkError) }
+    var logout: () async -> Void = { }
+    var isLoggedIn: () -> Bool = { false }
+    var isDebugMode: () -> Bool = { false }
+    var currentUserEmail: () -> String? = { nil }
 }
 
 extension AuthClient: DependencyKey {
+    static let baseURL = URL(string: "http://localhost:5000")!
     static let liveValue = AuthClient(
         login: { email, password in
-            // Simulate network delay
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            
-            let debugEmail = "debug@iquit.dev"
-            
-            if email == debugEmail {
-                // Debug mode login
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                UserDefaults.standard.set(true, forKey: "isDebugMode")
+            let url = baseURL.appendingPathComponent("/auth/login")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let body = ["email": email, "password": password]
+            request.httpBody = try? JSONEncoder().encode(body)
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                    return .failure(.invalidCredentials)
+                }
+                let json = try JSONDecoder().decode([String: String].self, from: data)
+                guard let token = json["token"] else {
+                    return .failure(.networkError)
+                }
+                UserDefaults.standard.set(token, forKey: "authToken")
                 UserDefaults.standard.set(email, forKey: "userEmail")
-                return .success(true)
-            }
-            
-            // Mock successful login for demo purposes
-            if email.contains("@") && password.count >= 6 {
+                let debug = (email == "debug@iquit.dev")
+                UserDefaults.standard.set(debug, forKey: "isDebugMode")
                 UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                UserDefaults.standard.set(false, forKey: "isDebugMode")
-                UserDefaults.standard.set(email, forKey: "userEmail")
-                return .success(false)
+                return .success(debug)
+            } catch {
+                return .failure(.networkError)
             }
-            
-            return .failure(.invalidCredentials)
         },
         signup: { email, password in
-            // Simulate network delay
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            
-            let debugEmail = "debug@iquit.dev"
-            
-            if email == debugEmail {
-                // Debug mode signup
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                UserDefaults.standard.set(true, forKey: "isDebugMode")
+            let url = baseURL.appendingPathComponent("/auth/signup")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let body = ["email": email, "password": password]
+            request.httpBody = try? JSONEncoder().encode(body)
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse,
+                      http.statusCode == 201 || http.statusCode == 200 else {
+                    return .failure(.invalidCredentials)
+                }
+                let json = try JSONDecoder().decode([String: String].self, from: data)
+                guard let token = json["token"] else {
+                    return .failure(.networkError)
+                }
+                UserDefaults.standard.set(token, forKey: "authToken")
                 UserDefaults.standard.set(email, forKey: "userEmail")
-                return .success(true)
-            }
-            
-            // Mock successful signup
-            if email.contains("@") && password.count >= 6 {
+                let debug = (email == "debug@iquit.dev")
+                UserDefaults.standard.set(debug, forKey: "isDebugMode")
                 UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                UserDefaults.standard.set(false, forKey: "isDebugMode")
-                UserDefaults.standard.set(email, forKey: "userEmail")
-                return .success(false)
+                return .success(debug)
+            } catch {
+                return .failure(.networkError)
             }
-            
-            return .failure(.invalidCredentials)
         },
         logout: {
+            UserDefaults.standard.removeObject(forKey: "authToken")
             UserDefaults.standard.removeObject(forKey: "isLoggedIn")
             UserDefaults.standard.removeObject(forKey: "isDebugMode")
             UserDefaults.standard.removeObject(forKey: "userEmail")

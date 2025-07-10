@@ -1,5 +1,4 @@
 from datetime import datetime
-autoimport
 from app import db
 
 class Consumption(db.Model):
