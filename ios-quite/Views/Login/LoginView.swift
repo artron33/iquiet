@@ -87,16 +87,33 @@ struct LoginView: View {
                     
                     // Debug hint
                     VStack(spacing: 8) {
-                        Text("Development Mode")
+                        Text("🛠 Development Mode")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                            .fontWeight(.medium)
                         
-                        Text("Use email: debug@iquit.dev with any password")
+                        Text("Email: debug@iquit.dev")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                            .fontWeight(.medium)
+                        
+                        Text("Password: any password (e.g., 123456)")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
+                        
+                        Text("• No server connection needed")
+                            .font(.caption2)
+                            .foregroundColor(.green)
+                        
+                        Text("• Uses fake data for testing")
+                            .font(.caption2)
+                            .foregroundColor(.green)
                     }
-                    .padding(.top, 40)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.top, 20)
                     
                     Spacer()
                 }

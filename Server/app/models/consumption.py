@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db
+from app.extensions import db
 
 class Consumption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -11,5 +11,3 @@ class Consumption(db.Model):
     cost = db.Column(db.Float, default=0.0)
     notes = db.Column(db.String(255))
     is_debug = db.Column(db.Boolean, default=False)
-
-    user = db.relationship('User', backref=db.backref('consumptions', lazy=True))

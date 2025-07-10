@@ -6,8 +6,7 @@ Flask-CORS==4.0.0
 Flask-Bcrypt==1.0.1
 Flask-Migrate==4.0.0
 
-# Database
-psycopg2-binary==2.9.5
+# Database - SQLite for development
 SQLAlchemy==1.4.46
 
 # Celery for background tasks

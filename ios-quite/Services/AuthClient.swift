@@ -20,9 +20,23 @@ struct AuthClient {
 }
 
 extension AuthClient: DependencyKey {
-    static let baseURL = URL(string: "http://localhost:5000")!
+    static let baseURL = URL(string: "http://localhost:5002")!
     static let liveValue = AuthClient(
         login: { email, password in
+            // Handle debug mode locally without hitting the server
+            if email == "debug@iquit.dev" {
+                // Simulate network delay
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                
+                // Set debug mode locally
+                UserDefaults.standard.set(true, forKey: "authToken") // Use a dummy token
+                UserDefaults.standard.set(email, forKey: "userEmail")
+                UserDefaults.standard.set(true, forKey: "isDebugMode")
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                return .success(true) // Return true for debug mode
+            }
+            
+            // For non-debug accounts, use the server
             let url = baseURL.appendingPathComponent("/auth/login")
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -40,20 +54,36 @@ extension AuthClient: DependencyKey {
                 }
                 UserDefaults.standard.set(token, forKey: "authToken")
                 UserDefaults.standard.set(email, forKey: "userEmail")
-                let debug = (email == "debug@iquit.dev")
-                UserDefaults.standard.set(debug, forKey: "isDebugMode")
+                UserDefaults.standard.set(false, forKey: "isDebugMode") // Server accounts are not debug mode
                 UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                return .success(debug)
+                return .success(false) // Return false for non-debug mode
             } catch {
                 return .failure(.networkError)
             }
         },
         signup: { email, password in
-            let url = baseURL.appendingPathComponent("/auth/signup")
+            // Handle debug mode locally without hitting the server
+            if email == "debug@iquit.dev" {
+                // Simulate network delay
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                
+                // Set debug mode locally
+                UserDefaults.standard.set(true, forKey: "authToken") // Use a dummy token
+                UserDefaults.standard.set(email, forKey: "userEmail")
+                UserDefaults.standard.set(true, forKey: "isDebugMode")
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                return .success(true) // Return true for debug mode
+            }
+            
+            // For non-debug accounts, use the server
+            let url = baseURL.appendingPathComponent("/auth/register")
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            let body = ["email": email, "password": password]
+            
+            // Extract username from email (part before @)
+            let username = String(email.split(separator: "@").first ?? "user")
+            let body = ["email": email, "password": password, "username": username]
             request.httpBody = try? JSONEncoder().encode(body)
             do {
                 let (data, response) = try await URLSession.shared.data(for: request)
@@ -67,10 +97,9 @@ extension AuthClient: DependencyKey {
                 }
                 UserDefaults.standard.set(token, forKey: "authToken")
                 UserDefaults.standard.set(email, forKey: "userEmail")
-                let debug = (email == "debug@iquit.dev")
-                UserDefaults.standard.set(debug, forKey: "isDebugMode")
+                UserDefaults.standard.set(false, forKey: "isDebugMode") // Server accounts are not debug mode
                 UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                return .success(debug)
+                return .success(false) // Return false for non-debug mode
             } catch {
                 return .failure(.networkError)
             }

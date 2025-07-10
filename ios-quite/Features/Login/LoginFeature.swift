@@ -82,7 +82,7 @@ struct LoginFeature {
                     await send(.loginResponse(result))
                 }
                 
-            case let .loginResponse(.success(isDebugMode)):
+            case .loginResponse(.success(_)):
                 state.isLoading = false
                 return .send(.loginSuccess)
                 

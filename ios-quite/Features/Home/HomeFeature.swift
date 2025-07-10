@@ -31,6 +31,7 @@ struct HomeFeature {
     }
     
     @Dependency(\.authClient) var authClient
+    @Dependency(\.consumptionClient) var consumptionClient
     @Dependency(\.date.now) var now
     
     var body: some ReducerOf<Self> {
@@ -51,11 +52,14 @@ struct HomeFeature {
                     state.todayConsumption += 1
                     return .send(.consumptionLogged(success: true))
                 } else {
-                    // In production mode, this would call a real API
-                    // For now, simulate a successful API call
-                    return .run { send in
-                        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                        await send(.consumptionLogged(success: true))
+                    // In production mode, log consumption via ConsumptionClient
+                    return .run { [substance = state.substanceType] send in
+                        do {
+                            try await consumptionClient.logConsumption(substance, 1.0, "unit", 0.0)
+                            await send(.consumptionLogged(success: true))
+                        } catch {
+                            await send(.consumptionLogged(success: false))
+                        }
                     }
                 }
                 
@@ -66,8 +70,16 @@ struct HomeFeature {
                     state.todayConsumption = fakeCount
                     return .none
                 } else {
-                    // In production mode, this would fetch from SwiftData or API
-                    return .none
+                    // In production mode, fetch from ConsumptionClient
+                    return .run { [substance = state.substanceType] send in
+                        do {
+                            let todayCount = try await consumptionClient.getTodayConsumption(substance)
+                            await send(.dataLoaded(todayCount: todayCount, weeklyAvg: 0.0, prevWeekAvg: 0.0))
+                        } catch {
+                            // Handle error silently for now
+                            await send(.dataLoaded(todayCount: 0, weeklyAvg: 0.0, prevWeekAvg: 0.0))
+                        }
+                    }
                 }
                 
             case .loadWeeklyStats:
@@ -81,8 +93,24 @@ struct HomeFeature {
                         prevWeekAvg: prevWeekAvg
                     ))
                 } else {
-                    // In production mode, this would calculate from SwiftData
-                    return .none
+                    // In production mode, fetch from ConsumptionClient
+                    return .run { [substance = state.substanceType, currentCount = state.todayConsumption] send in
+                        do {
+                            let stats = try await consumptionClient.getWeeklyStats(substance)
+                            await send(.dataLoaded(
+                                todayCount: currentCount,
+                                weeklyAvg: stats.current,
+                                prevWeekAvg: stats.previous
+                            ))
+                        } catch {
+                            // Handle error silently for now
+                            await send(.dataLoaded(
+                                todayCount: currentCount,
+                                weeklyAvg: 0.0,
+                                prevWeekAvg: 0.0
+                            ))
+                        }
+                    }
                 }
                 
             case let .consumptionLogged(success):

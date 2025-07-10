@@ -15,7 +15,7 @@ ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 
 # Expose port
-EXPOSE 5000
+EXPOSE 5001
 
 # Run with Gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "wsgi:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5001", "wsgi:app"]

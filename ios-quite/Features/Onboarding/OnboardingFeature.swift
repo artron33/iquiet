@@ -185,15 +185,15 @@ extension OnboardingFeature.State {
         }
     }
     
-    func createUserPreferences() -> UserPreferences {
+    func createUserPreferences(authClient: AuthClient) -> UserPreferences {
         return UserPreferences(
-            email: AuthService.shared.currentUserEmail() ?? "",
+            email: authClient.currentUserEmail() ?? "",
             targetSubstance: selectedSubstance,
             dailyGoal: Double(dailyAmount) ?? 0,
             unitType: unitType,
             costPerUnit: Double(costPerUnit) ?? 0,
             quitDate: quitDate,
-            isDebugMode: AuthService.shared.isDebugMode(),
+            isDebugMode: authClient.isDebugMode(),
             onboardingCompleted: true
         )
     }

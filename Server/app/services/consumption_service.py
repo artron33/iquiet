@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from app.models.consumption import Consumption
 from sqlalchemy import func
-from app import db
+from app.extensions import db
 
 
 def log_consumption(user, payload):

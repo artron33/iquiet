@@ -65,8 +65,8 @@ struct AppFeature {
             case .onAppear:
                 state.isLoading = true
                 return .run { send in
-                    let isLoggedIn = await authClient.isLoggedIn()
-                    let isDebugMode = await authClient.isDebugMode()
+                    let isLoggedIn = authClient.isLoggedIn()
+                    let isDebugMode = authClient.isDebugMode()
                     await send(.authenticationChecked(isLoggedIn: isLoggedIn, isDebugMode: isDebugMode))
                 }
                 

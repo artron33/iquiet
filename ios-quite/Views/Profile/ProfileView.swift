@@ -118,6 +118,81 @@ struct ProfileView: View {
                                 }
                             }
                             
+                            // Developer Mode Section (only show in debug mode)
+                            if viewStore.isDebugMode {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Developer Mode")
+                                        .font(.headline)
+                                        .foregroundColor(.primary)
+                                    
+                                    VStack(spacing: 12) {
+                                        HStack {
+                                            Image(systemName: "hammer.fill")
+                                                .foregroundColor(.orange)
+                                            Text("Debug Mode Active")
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                            Spacer()
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.green)
+                                        }
+                                        
+                                        HStack {
+                                            Image(systemName: "wifi")
+                                                .foregroundColor(.blue)
+                                            Text("Server: http://localhost:5002")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            Spacer()
+                                        }
+                                        
+                                        HStack {
+                                            Image(systemName: "person.circle.fill")
+                                                .foregroundColor(.green)
+                                            Text("Local Debug Account")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            Spacer()
+                                        }
+                                        
+                                        Divider()
+                                        
+                                        HStack(spacing: 12) {
+                                            Button(action: {
+                                                viewStore.send(.testServerConnection)
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "wifi.circle")
+                                                    Text("Test Server")
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(Color.blue)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(8)
+                                            }
+                                            
+                                            Button(action: {
+                                                viewStore.send(.resetOnboardingTapped)
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "arrow.counterclockwise")
+                                                    Text("Reset")
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(Color.orange)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(8)
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(12)
+                                }
+                            }
+                            
                             // Action buttons
                             VStack(spacing: 12) {
                                 Button(action: {

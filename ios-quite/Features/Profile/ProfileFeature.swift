@@ -54,6 +54,13 @@ struct ProfileFeature {
         case quitDateChanged(Date)
         case profileSaved
         case profileSaveError(String)
+        
+        // Developer mode actions
+        case developerModeToggled
+        case resetOnboardingTapped
+        case resetOnboardingConfirmed
+        case testServerConnection
+        case serverConnectionResult(Bool)
     }
     
     @Dependency(\.authClient) var authClient
@@ -194,6 +201,7 @@ struct ProfileFeature {
                 
             case .logoutCompleted:
                 // This action should trigger navigation back to login
+                // In a real app, this would be handled by the parent AppFeature
                 return .none
                 
             // Edit profile field actions
@@ -215,6 +223,58 @@ struct ProfileFeature {
                 
             case let .quitDateChanged(date):
                 state.editingQuitDate = date
+                return .none
+                
+            // Developer mode actions
+            case .developerModeToggled:
+                // Toggle developer mode (this would typically require a restart)
+                // For now, we'll just log this action
+                print("Developer mode toggle requested")
+                return .none
+                
+            case .resetOnboardingTapped:
+                // Clear onboarding completion status and preferences
+                UserDefaults.standard.removeObject(forKey: "onboardingCompleted")
+                // Also clear user preferences to force re-onboarding
+                if state.isDebugMode {
+                    state.preferences = nil
+                }
+                return .send(.resetOnboardingConfirmed)
+                
+            case .resetOnboardingConfirmed:
+                // This will trigger app to show onboarding again
+                // The AppFeature should handle this by checking onboarding completion
+                return .none
+                
+            case .testServerConnection:
+                // Test connection to localhost:5002
+                return .run { send in
+                    do {
+                        let url = URL(string: "http://localhost:5002/auth/login")!
+                        var request = URLRequest(url: url)
+                        request.httpMethod = "POST"
+                        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                        request.timeoutInterval = 3.0
+                        
+                        let body = ["email": "test", "password": "test"]
+                        request.httpBody = try? JSONEncoder().encode(body)
+                        
+                        let (_, response) = try await URLSession.shared.data(for: request)
+                        
+                        // Even if credentials are wrong, a response means server is reachable
+                        if let httpResponse = response as? HTTPURLResponse {
+                            await send(.serverConnectionResult(true))
+                        } else {
+                            await send(.serverConnectionResult(false))
+                        }
+                    } catch {
+                        await send(.serverConnectionResult(false))
+                    }
+                }
+                
+            case let .serverConnectionResult(success):
+                // Could show an alert or update UI to show connection status
+                print(success ? "✅ Server connection successful" : "❌ Server connection failed")
                 return .none
             }
         }

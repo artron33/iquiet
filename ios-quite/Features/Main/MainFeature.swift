@@ -67,6 +67,10 @@ struct MainFeature {
             case .stats:
                 return .none
                 
+            case .profile(.logoutCompleted):
+                // Forward logout to parent AppFeature
+                return .send(.logoutRequested)
+                
             case .profile:
                 return .none
                 
