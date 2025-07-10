@@ -1,0 +1,103 @@
+/* 
+  Localizable.strings (French)
+  ios-quite
+
+  Created by pichane on 10/07/2025.
+*/
+
+// Login
+"login.error.invalidCredentials" = "Email ou mot de passe invalide";
+"login.error.networkError" = "Erreur réseau. Veuillez réessayer.";
+"login.error.invalidEmail" = "Veuillez saisir une adresse email valide";
+"login.error.passwordTooShort" = "Le mot de passe doit contenir au moins 6 caractères";
+
+// General
+"app.name" = "iQuit";
+"app.tagline" = "Libérez-vous des mauvaises habitudes";
+
+// Navigation
+"tab.home" = "Accueil";
+"tab.stats" = "Statistiques";
+"tab.profile" = "Profil";
+
+// Home
+"home.todaysProgress" = "Progrès du jour";
+"home.tracking" = "Suivi : %@";
+"home.consumedToday" = "consommé aujourd'hui";
+"home.weeklyProgress" = "Progrès hebdomadaire";
+"home.vsLastWeek" = "vs. Semaine dernière";
+"home.reduction" = "réduction";
+"home.increase" = "augmentation";
+"home.quickActions" = "Actions rapides";
+"home.justConsumed" = "Je viens de consommer";
+
+// Stats
+"stats.title" = "Statistiques";
+"stats.daysSinceQuit" = "Jours depuis l'arrêt";
+"stats.moneySaved" = "Argent économisé";
+"stats.thisWeek" = "Cette semaine";
+"stats.lastWeek" = "Semaine dernière";
+"stats.dailyConsumption" = "Consommation quotidienne (7 derniers jours)";
+"stats.weeklyComparison" = "Comparaison hebdomadaire";
+"stats.improvement" = "Amélioration !";
+"stats.moreThanLastWeek" = "Plus que la semaine dernière";
+
+// Profile
+"profile.title" = "Profil";
+"profile.yourJourney" = "Votre parcours";
+"profile.quitting" = "Arrêt : %@";
+"profile.started" = "Commencé : %@";
+"profile.dailyGoal" = "Objectif quotidien : %.1f %@";
+"profile.costPer" = "Coût par %@ : %.2f€";
+"profile.settings" = "Paramètres";
+"profile.editProfile" = "Modifier le profil";
+"profile.language" = "Langue";
+"profile.notifications" = "Notifications";
+"profile.developer" = "Développeur";
+"profile.debugMode" = "Mode debug";
+"profile.enabled" = "Activé";
+"profile.disabled" = "Désactivé";
+"profile.signOut" = "Se déconnecter";
+
+// Onboarding
+"onboarding.setup" = "Configuration";
+"onboarding.whatToQuit" = "Que souhaitez-vous arrêter ?";
+"onboarding.howMuchPerDay" = "Combien consommez-vous typiquement par jour ?";
+"onboarding.amount" = "Quantité";
+"onboarding.costPerUnit" = "Quel est le coût par %@ ?";
+"onboarding.cost" = "Coût";
+"onboarding.helpCalculate" = "Cela aide à calculer l'argent économisé";
+"onboarding.whenToStart" = "Quand voulez-vous commencer à arrêter ?";
+"onboarding.quitDate" = "Date d'arrêt";
+"onboarding.summary" = "Résumé";
+"onboarding.substance" = "Substance";
+"onboarding.dailyAmount" = "Quantité quotidienne";
+"onboarding.costPerUnit.short" = "Coût par unité";
+"onboarding.back" = "Retour";
+"onboarding.next" = "Suivant";
+"onboarding.complete" = "Terminer";
+
+// Substances
+"substance.coffee" = "Café";
+"substance.cigarettes" = "Cigarettes";
+"substance.alcohol" = "Alcool";
+"substance.drugs" = "Drogues";
+"substance.social_media" = "Réseaux sociaux";
+"substance.gaming" = "Jeux vidéo";
+
+// Units
+"unit.cup" = "tasse";
+"unit.shot" = "shot";
+"unit.mug" = "mug";
+"unit.cigarette" = "cigarette";
+"unit.pack" = "paquet";
+"unit.stick" = "stick";
+"unit.drink" = "verre";
+"unit.beer" = "bière";
+"unit.glass" = "verre";
+"unit.bottle" = "bouteille";
+"unit.dose" = "dose";
+"unit.pill" = "pilule";
+"unit.gram" = "gramme";
+"unit.hour" = "heure";
+"unit.session" = "session";
