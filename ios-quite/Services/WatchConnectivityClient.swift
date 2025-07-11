@@ -10,16 +10,12 @@ import WatchConnectivity
 import ComposableArchitecture
 import IQUITShared
 
-// Note: SubstanceUse and StatsSnapshot are defined in IQUITShared/Models/
-// Since they're in the same target, no additional import should be needed
+// Shared models compiled directly into app target via target membership
 
 // MARK: - WatchConnectivityClient (TCA Dependency)
-@DependencyClient
 struct WatchConnectivityClient {
-    typealias SubstanceUseType = SubstanceUse
-    typealias StatsSnapshotType = StatsSnapshot
-    var sendSubstanceUse: (_ substanceUse: SubstanceUseType) async throws -> Void
-    var syncStats: (_ stats: StatsSnapshotType) async throws -> Void
+    var sendSubstanceUse: (_ substanceUse: SubstanceUse) async throws -> Void
+    var syncStats: (_ stats: StatsSnapshot) async throws -> Void
     var isWatchAppInstalled: () -> Bool = { false }
     var isWatchReachable: () -> Bool = { false }
     var sendMessage: (_ message: [String: Any]) async throws -> [String: Any]
@@ -90,7 +86,7 @@ extension DependencyValues {
 }
 
 // MARK: - SubstanceUse Extension for Watch Connectivity
-extension SubstanceUseType {
+extension SubstanceUse {
     var dictionaryRepresentation: [String: Any] {
         return [
             "id": id.uuidString,

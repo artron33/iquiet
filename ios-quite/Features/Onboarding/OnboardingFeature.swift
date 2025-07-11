@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 import ComposableArchitecture
-// import IQUITShared
+import IQUITShared  // Shared models compiled directly into app target via target membership
 
 @Reducer
 struct OnboardingFeature {

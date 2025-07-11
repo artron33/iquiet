@@ -13,7 +13,7 @@ let package = Package(
         // Products define the libraries a package produces, making them visible to other packages.
         .library(
             name: "IQUITShared",
-            type: .dynamic,
+            type: .static,
             targets: ["IQUITShared"]
         )
     ],

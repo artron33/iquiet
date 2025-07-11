@@ -9,8 +9,7 @@ import Foundation
 import ComposableArchitecture
 import IQUITShared
 
-// Note: UserPreferences is defined in IQUITShared/Models/UserPreferences.swift
-// Since it's in the same target, no additional import should be needed
+// Shared models compiled directly into app target via target membership
 
 // MARK: - UserPreferencesClient (TCA Dependency)
 @DependencyClient

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E6190DD2E213F4800A03BE4 /* IQUITShared in Frameworks */ = {isa = PBXBuildFile; productRef = 9E6190DC2E213F4800A03BE4 /* IQUITShared */; };
 		9E7423942E2000B500E2D02F /* ios-quite Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9E7423932E2000B500E2D02F /* ios-quite Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9EC9919E2E202A440088E847 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7423D12E2001A400E2D02F /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
@@ -70,6 +71,7 @@
 		9E7423932E2000B500E2D02F /* ios-quite Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ios-quite Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E7423A52E2000B900E2D02F /* ios-quite Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ios-quite Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E7423AF2E2000B900E2D02F /* ios-quite Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ios-quite Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EC992702E213B8B0088E847 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Package.swift; path = "ios-quite/IQUITShared/Package.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -110,6 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E6190DD2E213F4800A03BE4 /* IQUITShared in Frameworks */,
 				9EC9919E2E202A440088E847 /* ComposableArchitecture in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -161,6 +164,7 @@
 				9E7423972E2000B500E2D02F /* ios-quite Watch App */,
 				9E7423A82E2000B900E2D02F /* ios-quite Watch AppTests */,
 				9E7423B22E2000B900E2D02F /* ios-quite Watch AppUITests */,
+				9EC992152E2129370088E847 /* Frameworks */,
 				9E74236E2E2000A500E2D02F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -176,6 +180,14 @@
 				9E7423AF2E2000B900E2D02F /* ios-quite Watch AppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9EC992152E2129370088E847 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9EC992702E213B8B0088E847 /* Package.swift */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -201,6 +213,7 @@
 			name = "ios-quite";
 			packageProductDependencies = (
 				9E7423D12E2001A400E2D02F /* ComposableArchitecture */,
+				9E6190DC2E213F4800A03BE4 /* IQUITShared */,
 			);
 			productName = "ios-quite";
 			productReference = 9E74236D2E2000A500E2D02F /* ios-quite.app */;
@@ -366,6 +379,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9E7423D02E2001A400E2D02F /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				9E6190D92E213F1900A03BE4 /* XCLocalSwiftPackageReference "ios-quite/IQUITShared" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9E74236E2E2000A500E2D02F /* Products */;
@@ -973,6 +987,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		9E6190D92E213F1900A03BE4 /* XCLocalSwiftPackageReference "ios-quite/IQUITShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "ios-quite/IQUITShared";
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		9E7423D02E2001A400E2D02F /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -985,6 +1006,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9E6190DC2E213F4800A03BE4 /* IQUITShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IQUITShared;
+		};
 		9E7423D12E2001A400E2D02F /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9E7423D02E2001A400E2D02F /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;

@@ -10,6 +10,7 @@ import ComposableArchitecture
 import SwiftData
 import IQUITShared
 
+// shared models now part of app module via target membership
 // MARK: - Type Aliases
 typealias SubstanceUseArray = [SubstanceUse]
 
@@ -36,7 +37,6 @@ enum ConsumptionError: Error {
 }
 
 // MARK: - ConsumptionClient (TCA Dependency)
-@DependencyClient
 struct ConsumptionClient {
     var logConsumption: (_ substance: String, _ quantity: Double, _ unit: String, _ cost: Double) async throws -> Void
     var getTodayConsumption: (_ substance: String) async throws -> Int
@@ -51,7 +51,8 @@ extension ConsumptionClient: DependencyKey {
     static let liveValue = ConsumptionClient(
         logConsumption: { substance, quantity, unit, cost in
             // In debug mode, just simulate locally
-            if UserDefaults.standard.bool(forKey: "isDebugMode") {
+            if UserDefaults.standard.bool(forKey: "isDebugMode") || 
+               UserDefaults.standard.string(forKey: "userEmail") == "debug@iquit.dev" {
                 try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                 print("🔄 Debug mode: Logged consumption - \(substance): \(quantity) \(unit)")
                 return
@@ -85,13 +86,14 @@ extension ConsumptionClient: DependencyKey {
                 }
                 print("✅ Consumption logged to server: \(substance)")
             } catch {
-                print("❌ Failed to log consumption: \(error)")
+                print("❌ Failed to log ConsumptionClient::consumption: \(error)")
                 throw ConsumptionError.networkError
             }
         },
         getTodayConsumption: { substance in
             // In debug mode, return mock data
-            if UserDefaults.standard.bool(forKey: "isDebugMode") {
+            if UserDefaults.standard.bool(forKey: "isDebugMode") || 
+               UserDefaults.standard.string(forKey: "userEmail") == "debug@iquit.dev" {
                 return Int.random(in: 0...8)
             }
             

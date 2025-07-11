@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import Foundation
 import SwiftData
+import IQUITShared
 
 @Reducer
 struct HomeFeature {
@@ -97,7 +98,7 @@ struct HomeFeature {
                             )
                             await send(.consumptionLogged(success: true))
                         } catch {
-                            print("❌ Failed to log consumption: \(error)")
+                            print("❌ Failed to log HomeFeature::consumption: \(error)")
                             await send(.consumptionLogged(success: false))
                         }
                     }
