@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import Foundation
 import SwiftData
+import IQUITShared
 
 @Reducer
 struct ProfileFeature {
@@ -64,6 +65,7 @@ struct ProfileFeature {
     }
     
     @Dependency(\.authClient) var authClient
+    @Dependency(\.userPreferencesClient) var userPreferencesClient
     @Dependency(\.date.now) var now
     
     var body: some ReducerOf<Self> {
@@ -77,17 +79,22 @@ struct ProfileFeature {
                 state.isLoading = true
                 
                 if state.isDebugMode {
-                    // Mock data for debug mode
-                    let mockPreferences = UserPreferences(
-                        targetSubstance: "coffee",
-                        dailyGoal: 3.0,
-                        unitType: "cup",
-                        costPerUnit: 4.50,
-                        quitDate: Calendar.current.date(byAdding: .day, value: -30, to: now) ?? now
-                    )
+                    // Load real preferences from UserDefaults even in debug mode
+                    return .run { send in
+                        do {
+                            let preferences = try await userPreferencesClient.loadPreferences()
+                            let email = authClient.currentUserEmail() ?? "debug@example.com"
+                            await send(.profileLoaded(email: email, preferences: preferences))
+                        } catch {
+                            // Fallback to mock data if no preferences found
+                            let mockPreferences = UserPreferences.mockDebugPreferences()
+                            await send(.profileLoaded(email: "debug@example.com", preferences: mockPreferences))
+                        }
+                        await send(.statsLoaded(totalDays: 30, moneySaved: 135.0, longestStreak: 7))
+                    }
                     
                     return .merge(
-                        .send(.profileLoaded(email: "debug@example.com", preferences: mockPreferences)),
+                        .send(.profileLoaded(email: "debug@example.com", preferences: UserPreferences.mockDebugPreferences())),
                         .send(.statsLoaded(
                             totalDays: 30,
                             moneySaved: 135.0,
@@ -95,12 +102,17 @@ struct ProfileFeature {
                         ))
                     )
                 } else {
-                    // In production mode, get real data from AuthClient
+                    // In production mode, load real preferences and user data
                     let email = authClient.currentUserEmail() ?? "Unknown"
-                    return .merge(
-                        .send(.profileLoaded(email: email, preferences: nil)),
-                        .send(.statsLoaded(totalDays: 0, moneySaved: 0.0, longestStreak: 0))
-                    )
+                    return .run { send in
+                        do {
+                            let preferences = try await userPreferencesClient.loadPreferences()
+                            await send(.profileLoaded(email: email, preferences: preferences))
+                        } catch {
+                            await send(.profileLoaded(email: email, preferences: nil))
+                        }
+                        await send(.statsLoaded(totalDays: 0, moneySaved: 0.0, longestStreak: 0))
+                    }
                 }
                 
             case let .profileLoaded(email, preferences):
@@ -148,29 +160,56 @@ struct ProfileFeature {
                       dailyGoal > 0,
                       !state.editingUnitType.isEmpty,
                       let costPerUnit = Double(state.editingCostPerUnit),
-                      costPerUnit >= 0 else {
+                      costPerUnit >= 0,
+                      let existingPrefs = state.preferences else {
                     return .send(.profileSaveError("Please fill in all fields with valid values"))
                 }
                 
-                if state.isDebugMode {
-                    // Simulate successful save in debug mode
-                    let updatedPreferences = UserPreferences(
-                        targetSubstance: state.editingSubstance,
-                        dailyGoal: dailyGoal,
-                        unitType: state.editingUnitType,
-                        costPerUnit: costPerUnit,
-                        quitDate: state.editingQuitDate
-                    )
-                    state.preferences = updatedPreferences
-                    return .send(.profileSaved)
-                } else {
-                    // In production mode, save to SwiftData
-                    // For now, simulate successful save
-                    return .send(.profileSaved)
+                let updatedPreferences = UserPreferences(
+                    id: existingPrefs.id,
+                    email: existingPrefs.email,
+                    targetSubstance: state.editingSubstance,
+                    dailyGoal: dailyGoal,
+                    unitType: state.editingUnitType,
+                    costPerUnit: costPerUnit,
+                    quitDate: state.editingQuitDate,
+                    isDebugMode: existingPrefs.isDebugMode,
+                    language: existingPrefs.language,
+                    notificationsEnabled: existingPrefs.notificationsEnabled,
+                    onboardingCompleted: existingPrefs.onboardingCompleted
+                )
+                
+                return .run { send in
+                    do {
+                        try await userPreferencesClient.savePreferences(updatedPreferences)
+                        await send(.profileSaved)
+                    } catch {
+                        await send(.profileSaveError("Failed to save preferences"))
+                    }
                 }
                 
             case .profileSaved:
                 state.showingEditProfile = false
+                // Update local state with the saved preferences
+                let updatedPreferences = UserPreferences(
+                    id: state.preferences?.id ?? UUID(),
+                    email: state.preferences?.email ?? "",
+                    targetSubstance: state.editingSubstance,
+                    dailyGoal: Double(state.editingDailyGoal) ?? 0.0,
+                    unitType: state.editingUnitType,
+                    costPerUnit: Double(state.editingCostPerUnit) ?? 0.0,
+                    quitDate: state.editingQuitDate,
+                    isDebugMode: state.preferences?.isDebugMode ?? false,
+                    language: state.preferences?.language ?? "en",
+                    notificationsEnabled: state.preferences?.notificationsEnabled ?? true,
+                    onboardingCompleted: state.preferences?.onboardingCompleted ?? true
+                )
+                state.preferences = updatedPreferences
+                return .none
+                
+            case let .profileSaveError(message):
+                // Handle save error - could show an alert
+                print("Profile save error: \(message)")
                 return .none
                 
             case .profileSaveError(_):
@@ -247,10 +286,10 @@ struct ProfileFeature {
                 return .none
                 
             case .testServerConnection:
-                // Test connection to localhost:5002
+                // Test connection to 192.168.1.107:5002
                 return .run { send in
                     do {
-                        let url = URL(string: "http://localhost:5002/auth/login")!
+                        let url = URL(string: "http://192.168.1.107:5002/auth/login")!
                         var request = URLRequest(url: url)
                         request.httpMethod = "POST"
                         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

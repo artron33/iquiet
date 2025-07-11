@@ -36,12 +36,7 @@ struct OnboardingView: View {
                     .padding()
                     
                     // Step content
-                    // Extract binding to simplify type-checking
-                    let stepSelection = viewStore.binding(
-                        get: \.currentStep,
-                        send: { _ in OnboardingFeature.Action.nextButtonTapped }
-                    )
-                    TabView(selection: stepSelection) {
+                    TabView(selection: .constant(viewStore.currentStep)) {
                         substanceSelectionStep(viewStore: viewStore).tag(0)
                         dailyAmountStep(viewStore: viewStore).tag(1)
                         costStep(viewStore: viewStore).tag(2)
@@ -49,7 +44,12 @@ struct OnboardingView: View {
                         summaryStep(viewStore: viewStore).tag(4)
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                    .disabled(true)
+                    .gesture(
+                        DragGesture()
+                            .onEnded { _ in
+                                // Disable swipe gestures but allow touch interactions
+                            }
+                    )
                     
                     // Navigation buttons
                     HStack {
@@ -97,9 +97,11 @@ struct OnboardingView: View {
                 .navigationBarHidden(true)
                 .alert("Error", isPresented: viewStore.binding(
                     get: { $0.errorMessage != nil },
-                    send: { _ in OnboardingFeature.Action.nextButtonTapped }
+                    send: { _ in OnboardingFeature.Action.clearError }
                 )) {
-                    Button("OK") { }
+                    Button("OK") { 
+                        viewStore.send(.clearError)
+                    }
                 } message: {
                     Text(viewStore.errorMessage ?? "")
                 }
@@ -127,6 +129,7 @@ struct OnboardingView: View {
             ], spacing: 16) {
                 ForEach(OnboardingFeature.State.substances, id: \.self) { substance in
                     Button(action: {
+                        print("DEBUG: Button tapped for substance: \(substance)")
                         viewStore.send(.substanceSelected(substance))
                     }) {
                         VStack(spacing: 8) {
@@ -143,6 +146,7 @@ struct OnboardingView: View {
                         .background(viewStore.selectedSubstance == substance ? Color.blue : Color.gray.opacity(0.1))
                         .cornerRadius(12)
                     }
+                    .buttonStyle(PlainButtonStyle()) // Ensure the button responds to taps
                 }
             }
             

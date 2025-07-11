@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import ComposableArchitecture
+// import IQUITShared
 
 @Reducer
 struct OnboardingFeature {
@@ -64,10 +65,12 @@ struct OnboardingFeature {
         case completeOnboarding
         case onboardingCompleted
         case onboardingFailed(String)
+        case clearError
     }
     
     @Dependency(\.continuousClock) var clock
     @Dependency(\.authClient) var authClient
+    @Dependency(\.userPreferencesClient) var userPreferencesClient
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -85,10 +88,12 @@ struct OnboardingFeature {
                 return .none
                 
             case let .substanceSelected(substance):
+                print("DEBUG: Substance selected: \(substance)")
                 state.selectedSubstance = substance
                 // Auto-select first unit type for the substance
                 if let units = State.substanceUnits[substance], let firstUnit = units.first {
                     state.unitType = firstUnit
+                    print("DEBUG: Auto-selected unit type: \(firstUnit)")
                 }
                 return .none
                 
@@ -145,8 +150,10 @@ struct OnboardingFeature {
                             onboardingCompleted: true
                         )
                         
-                        // TODO: Save preferences to SwiftData
-                        // For now, just save onboarding completion status
+                        // Save preferences to persistence layer
+                        try await userPreferencesClient.savePreferences(preferences)
+                        
+                        // Save onboarding completion status
                         UserDefaults.standard.set(true, forKey: "onboardingCompleted")
                         
                         // Log preferences for debugging
@@ -165,6 +172,10 @@ struct OnboardingFeature {
             case let .onboardingFailed(message):
                 state.isLoading = false
                 state.errorMessage = message
+                return .none
+                
+            case .clearError:
+                state.errorMessage = nil
                 return .none
             }
         }

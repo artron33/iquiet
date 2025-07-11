@@ -18,7 +18,9 @@ struct HomeFeature {
         var previousWeekAverage: Double = 0.0
         var isDebugMode: Bool = false
         var substanceType: String = "Coffee"
+        var unitType: String = "cup"
         var isLoading: Bool = false
+        var preferences: UserPreferences? = nil
     }
     
     enum Action: Equatable {
@@ -26,12 +28,15 @@ struct HomeFeature {
         case consumptionTapped
         case loadTodayData
         case loadWeeklyStats
+        case loadUserPreferences
+        case preferencesLoaded(UserPreferences?)
         case consumptionLogged(success: Bool)
         case dataLoaded(todayCount: Int, weeklyAvg: Double, prevWeekAvg: Double)
     }
     
     @Dependency(\.authClient) var authClient
     @Dependency(\.consumptionClient) var consumptionClient
+    @Dependency(\.userPreferencesClient) var userPreferencesClient
     @Dependency(\.date.now) var now
     
     var body: some ReducerOf<Self> {
@@ -40,9 +45,34 @@ struct HomeFeature {
             case .onAppear:
                 state.isDebugMode = authClient.isDebugMode()
                 return .merge(
+                    .send(.loadUserPreferences),
                     .send(.loadTodayData),
                     .send(.loadWeeklyStats)
                 )
+                
+            case .loadUserPreferences:
+                return .run { send in
+                    do {
+                        let preferences = try await userPreferencesClient.loadPreferences()
+                        await send(.preferencesLoaded(preferences))
+                    } catch {
+                        await send(.preferencesLoaded(nil))
+                    }
+                }
+                
+            case let .preferencesLoaded(preferences):
+                state.preferences = preferences
+                if let prefs = preferences {
+                    state.substanceType = prefs.targetSubstance.capitalized
+                    state.unitType = prefs.unitType
+                    print("🏠 HomeFeature loaded preferences: \(prefs.targetSubstance)")
+                } else {
+                    // Fallback to default values
+                    state.substanceType = "Substance"
+                    state.unitType = "unit"
+                    print("🏠 HomeFeature: No preferences found, using defaults")
+                }
+                return .none
                 
             case .consumptionTapped:
                 state.isLoading = true
@@ -53,11 +83,21 @@ struct HomeFeature {
                     return .send(.consumptionLogged(success: true))
                 } else {
                     // In production mode, log consumption via ConsumptionClient
-                    return .run { [substance = state.substanceType] send in
+                    return .run { [preferences = state.preferences] send in
                         do {
-                            try await consumptionClient.logConsumption(substance, 1.0, "unit", 0.0)
+                            let substance = preferences?.targetSubstance ?? "substance"
+                            let unitType = preferences?.unitType ?? "unit"
+                            let costPerUnit = preferences?.costPerUnit ?? 0.0
+                            
+                            try await consumptionClient.logConsumption(
+                                substance.lowercased(),
+                                1.0,
+                                unitType,
+                                costPerUnit
+                            )
                             await send(.consumptionLogged(success: true))
                         } catch {
+                            print("❌ Failed to log consumption: \(error)")
                             await send(.consumptionLogged(success: false))
                         }
                     }
@@ -71,9 +111,10 @@ struct HomeFeature {
                     return .none
                 } else {
                     // In production mode, fetch from ConsumptionClient
-                    return .run { [substance = state.substanceType] send in
+                    return .run { [preferences = state.preferences] send in
                         do {
-                            let todayCount = try await consumptionClient.getTodayConsumption(substance)
+                            let substance = preferences?.targetSubstance ?? "substance"
+                            let todayCount = try await consumptionClient.getTodayConsumption(substance.lowercased())
                             await send(.dataLoaded(todayCount: todayCount, weeklyAvg: 0.0, prevWeekAvg: 0.0))
                         } catch {
                             // Handle error silently for now
@@ -94,9 +135,10 @@ struct HomeFeature {
                     ))
                 } else {
                     // In production mode, fetch from ConsumptionClient
-                    return .run { [substance = state.substanceType, currentCount = state.todayConsumption] send in
+                    return .run { [preferences = state.preferences, currentCount = state.todayConsumption] send in
                         do {
-                            let stats = try await consumptionClient.getWeeklyStats(substance)
+                            let substance = preferences?.targetSubstance ?? "substance"
+                            let stats = try await consumptionClient.getWeeklyStats(substance.lowercased())
                             await send(.dataLoaded(
                                 todayCount: currentCount,
                                 weeklyAvg: stats.current,

@@ -8,6 +8,10 @@
 import Foundation
 import ComposableArchitecture
 import SwiftData
+import IQUITShared
+
+// MARK: - Type Aliases
+typealias SubstanceUseArray = [SubstanceUse]
 
 // MARK: - Supporting Types
 struct ConsumptionEntry: Codable {
@@ -37,12 +41,12 @@ struct ConsumptionClient {
     var logConsumption: (_ substance: String, _ quantity: Double, _ unit: String, _ cost: Double) async throws -> Void
     var getTodayConsumption: (_ substance: String) async throws -> Int
     var getWeeklyStats: (_ substance: String) async throws -> (current: Double, previous: Double)
-    var getAllConsumption: () async throws -> [SubstanceUse]
+    var getAllConsumption: () async throws -> SubstanceUseArray
     var deleteConsumption: (_ id: UUID) async throws -> Void
 }
 
 extension ConsumptionClient: DependencyKey {
-    static let baseURL = URL(string: "http://localhost:5002")!
+    static let baseURL = URL(string: "http://192.168.1.107:5002")!
     
     static let liveValue = ConsumptionClient(
         logConsumption: { substance, quantity, unit, cost in

@@ -13,8 +13,9 @@ import ComposableArchitecture
 struct ios_quiteApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            SubstanceUse.self,
-            UserPreferences.self
+            SubstanceUseModel.self,
+            UserPreferencesModel.self,
+            StatsSnapshotModel.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         

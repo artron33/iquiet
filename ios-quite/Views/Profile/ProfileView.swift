@@ -140,7 +140,7 @@ struct ProfileView: View {
                                         HStack {
                                             Image(systemName: "wifi")
                                                 .foregroundColor(.blue)
-                                            Text("Server: http://localhost:5002")
+                                            Text("Server: http://192.168.1.107:5002")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                             Spacer()

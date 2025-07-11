@@ -109,6 +109,10 @@ struct LoginView: View {
                         Text("• Uses fake data for testing")
                             .font(.caption2)
                             .foregroundColor(.green)
+                        
+                        Text("• Real accounts use: 192.168.1.107:5002")
+                            .font(.caption2)
+                            .foregroundColor(.blue)
                     }
                     .padding()
                     .background(Color(.systemGray6))

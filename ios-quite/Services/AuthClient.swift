@@ -20,7 +20,7 @@ struct AuthClient {
 }
 
 extension AuthClient: DependencyKey {
-    static let baseURL = URL(string: "http://localhost:5002")!
+    static let baseURL = URL(string: "http://192.168.1.107:5002")!
     static let liveValue = AuthClient(
         login: { email, password in
             // Handle debug mode locally without hitting the server
