@@ -48,11 +48,28 @@ struct ConsumptionClient {
 extension ConsumptionClient: DependencyKey {
     static let baseURL = URL(string: "http://192.168.1.107:5002")!
     
+    // Helper to get the appropriate server URL based on debug mode
+    private static func getServerURL() -> URL {
+        // In debug mode, if we're using debug@iquit.dev, don't use server at all
+        if UserDefaults.standard.bool(forKey: "isDebugMode") || 
+           UserDefaults.standard.string(forKey: "userEmail") == "debug@iquit.dev" {
+            return baseURL // This won't be used anyway
+        }
+        
+        // For production, use the configured server
+        return baseURL
+    }
+    
     static let liveValue = ConsumptionClient(
         logConsumption: { substance, quantity, unit, cost in
             // In debug mode, just simulate locally
-            if UserDefaults.standard.bool(forKey: "isDebugMode") || 
-               UserDefaults.standard.string(forKey: "userEmail") == "debug@iquit.dev" {
+            let isDebugMode = UserDefaults.standard.bool(forKey: "isDebugMode")
+            let userEmail = UserDefaults.standard.string(forKey: "userEmail")
+            let isDebugUser = userEmail == "debug@iquit.dev"
+            
+            print("🔍 LogConsumption Debug check: isDebugMode=\(isDebugMode), userEmail=\(userEmail ?? "nil"), isDebugUser=\(isDebugUser)")
+            
+            if isDebugMode || isDebugUser {
                 try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                 print("🔄 Debug mode: Logged consumption - \(substance): \(quantity) \(unit)")
                 return
@@ -91,16 +108,25 @@ extension ConsumptionClient: DependencyKey {
             }
         },
         getTodayConsumption: { substance in
+            // Check debug mode more thoroughly
+            let isDebugMode = UserDefaults.standard.bool(forKey: "isDebugMode")
+            let userEmail = UserDefaults.standard.string(forKey: "userEmail")
+            let isDebugUser = userEmail == "debug@iquit.dev"
+            
+            print("🔍 Debug check: isDebugMode=\(isDebugMode), userEmail=\(userEmail ?? "nil"), isDebugUser=\(isDebugUser)")
+            
             // In debug mode, return mock data
-            if UserDefaults.standard.bool(forKey: "isDebugMode") || 
-               UserDefaults.standard.string(forKey: "userEmail") == "debug@iquit.dev" {
-                return Int.random(in: 0...8)
+            if isDebugMode || isDebugUser {
+                let mockCount = Int.random(in: 0...8)
+                print("🔄 Debug mode: Mock today consumption - \(mockCount)")
+                return mockCount
             }
             
             // For non-debug mode, fetch from server
             let url = baseURL.appendingPathComponent("/consumption/today")
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
+            request.timeoutInterval = 10.0 // Add timeout for network issues
             
             // Add auth token if available
             if let token = UserDefaults.standard.string(forKey: "authToken") {
@@ -109,12 +135,20 @@ extension ConsumptionClient: DependencyKey {
             
             do {
                 let (data, response) = try await URLSession.shared.data(for: request)
-                guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                    throw ConsumptionError.networkError
+                guard let http = response as? HTTPURLResponse else {
+                    print("❌ Failed to fetch today's consumption: Invalid response")
+                    return 0
+                }
+                
+                guard http.statusCode == 200 else {
+                    print("❌ Failed to fetch today's consumption: HTTP \(http.statusCode)")
+                    return 0
                 }
                 
                 let consumptions = try JSONDecoder().decode([ConsumptionEntry].self, from: data)
-                return consumptions.filter { $0.substance_type == substance }.count
+                let count = consumptions.filter { $0.substance_type == substance }.count
+                print("✅ Fetched today's consumption: \(count)")
+                return count
             } catch {
                 print("❌ Failed to fetch today's consumption: \(error)")
                 // Return 0 as fallback
@@ -123,9 +157,16 @@ extension ConsumptionClient: DependencyKey {
         },
         getWeeklyStats: { substance in
             // In debug mode, return mock data
-            if UserDefaults.standard.bool(forKey: "isDebugMode") {
+            let isDebugMode = UserDefaults.standard.bool(forKey: "isDebugMode")
+            let userEmail = UserDefaults.standard.string(forKey: "userEmail")
+            let isDebugUser = userEmail == "debug@iquit.dev"
+            
+            print("🔍 WeeklyStats Debug check: isDebugMode=\(isDebugMode), userEmail=\(userEmail ?? "nil"), isDebugUser=\(isDebugUser)")
+            
+            if isDebugMode || isDebugUser {
                 let current = Double.random(in: 2.0...6.0)
                 let previous = Double.random(in: 2.0...6.0)
+                print("🔄 Debug mode: Mock weekly stats - current: \(current), previous: \(previous)")
                 return (current: current, previous: previous)
             }
             
@@ -133,6 +174,7 @@ extension ConsumptionClient: DependencyKey {
             let url = baseURL.appendingPathComponent("/consumption/weekly")
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
+            request.timeoutInterval = 10.0 // Add timeout for network issues
             
             // Add auth token if available
             if let token = UserDefaults.standard.string(forKey: "authToken") {
@@ -141,8 +183,14 @@ extension ConsumptionClient: DependencyKey {
             
             do {
                 let (data, response) = try await URLSession.shared.data(for: request)
-                guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                    throw ConsumptionError.networkError
+                guard let http = response as? HTTPURLResponse else {
+                    print("❌ Failed to fetch weekly stats: Invalid response")
+                    return (current: 0.0, previous: 0.0)
+                }
+                
+                guard http.statusCode == 200 else {
+                    print("❌ Failed to fetch weekly stats: HTTP \(http.statusCode)")
+                    return (current: 0.0, previous: 0.0)
                 }
                 
                 let weeklyStats = try JSONDecoder().decode([WeeklyStatsEntry].self, from: data)
@@ -155,6 +203,7 @@ extension ConsumptionClient: DependencyKey {
                 let previousWeek = weeklyStats.dropLast(7).suffix(7)
                 let previousAvg = previousWeek.isEmpty ? 0.0 : Double(previousWeek.reduce(0) { $0 + $1.count }) / Double(previousWeek.count)
                 
+                print("✅ Fetched weekly stats: current=\(currentAvg), previous=\(previousAvg)")
                 return (current: currentAvg, previous: previousAvg)
             } catch {
                 print("❌ Failed to fetch weekly stats: \(error)")
